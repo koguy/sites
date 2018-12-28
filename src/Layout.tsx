@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Layout as LayoutAntd, Menu } from 'antd';
+import { Layout as LayoutAntd, Menu, Row, Col } from 'antd';
 import {Link} from 'react-router-dom';
 
 export default class Layout extends React.Component {
@@ -15,7 +15,11 @@ export default class Layout extends React.Component {
                 </Menu>
             </Header>
             <Content>
-                {this.props.children}
+                <Row>
+                    <Col offset={4} span={16} style={{backgroundColor:'white', padding: '10px'}}>
+                        {this.props.children}
+                    </Col>
+                </Row>
             </Content>
             <Footer>
             </Footer>

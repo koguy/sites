@@ -26,7 +26,8 @@ export const Statuses = {
 	deleted: "deleted",
 	updated: "updated",
     isUpdating: "isUpdating",
-    none: "none"
+    none: "none",
+    set: "set"
 }
 
 export namespace Types {
@@ -43,7 +44,7 @@ export namespace Types {
 export namespace IActions{
     export interface IFetchList {
         type: 'FETCH_SITES_LIST',
-        sitesList: Map<number, Sites>
+        sitesList: Array<Sites>
     }
     export interface ICreate {
         type: 'CREATE_SITE',
@@ -52,6 +53,10 @@ export namespace IActions{
     export interface ISetCurrentSite {
         type: 'SET_CURRENT',
         siteId: number
+    }
+    export interface IUpdate {
+        type: 'UPDATE_SITE',
+        site: Sites
     }
     export interface ISiteInProcess {
         type: 'SITE_IN_PROCESS',
@@ -65,7 +70,7 @@ export namespace IActions{
 
 export namespace Actions {
 
-    export const fetchList = (sitesList: Map<number, Sites>): IActions.IFetchList => {
+    export const fetchList = (sitesList: Array<Sites>): IActions.IFetchList => {
         return {
             type: Types.FETCH_SITES_LIST,
             sitesList
@@ -81,6 +86,12 @@ export namespace Actions {
         return {
             type: Types.SET_CURRENT,
             siteId
+        }
+    }
+    export const update = (site: Sites): IActions.IUpdate => {
+        return {
+            type: Types.UPDATE_SITE,
+            site
         }
     }
     export const siteInProcess = (status: string): IActions.ISiteInProcess => {
@@ -115,7 +126,7 @@ export namespace Actions {
         create: (site) => (dispatch) => {
             dispatch(siteInProcess(Statuses.isCreating));
             fetch("http://localhost:5000/api/sites", {
-                method: "POST",
+                method: "PUT",
                 headers: new Headers({
                     "accept": "application/json",
                     "content-type": "application/json"
@@ -126,14 +137,39 @@ export namespace Actions {
                     return response.json();
                 })
                 .then(data => {
-                    if (data)
+                    if (data) {
                         dispatch(create(data));
+                        //dispatch(setCurrent(data.id));
+                    }
                 })
                 .catch(error =>
                     console.error("An error occured while PUT"));
         },
         setCurrent: (siteId: number) => (dispatch) => {
             dispatch(setCurrent(siteId));
+        },
+        update: (site) => (dispatch) => {
+            dispatch(siteInProcess(Statuses.isUpdating));
+            fetch("http://localhost:5000/api/sites/" + site.id.toString() , {
+                method: "POST",
+                headers: new Headers({
+                    "accept": "application/json",
+                    "content-type": "application/json"
+                }),
+                body: JSON.stringify(site)
+            })
+            .then(response => {
+                if (response.ok)
+                    return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    dispatch(update(data));
+                    //dispatch(setCurrent(data.id));
+                }
+            });
+            //.catch(error =>
+              //  console.error("An error occured while POST"));
         }
 	}
 }
@@ -147,9 +183,17 @@ const initialState: ISitesState = {
         status: Statuses.none,
         data: new Sites()
     }
+};
+
+function convertToImmutableMap(sites: Array<Sites>): Map<number, Sites> {
+    let sitesMap = Map<number, Sites>();
+    sites.forEach(value => {
+        sitesMap = sitesMap.set(value.id, value);
+    });
+    return sitesMap;
 }
 
-type KnowAction = IActions.IFetchList | IActions.ICreate | IActions.ISiteInProcess | IActions.IListInProcess | IActions.ISetCurrentSite;
+type KnowAction = IActions.IFetchList | IActions.ICreate | IActions.ISiteInProcess | IActions.IListInProcess | IActions.ISetCurrentSite | IActions.IUpdate;
 
 export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState, action: KnowAction) => {
 	switch (action.type) {
@@ -158,23 +202,39 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
                 ...state,
                 sites: {
                     status: Statuses.loaded,
-                    data: action.sitesList
+                    data: convertToImmutableMap(action.sitesList)
                 }
             }
 		case Types.CREATE_SITE:
 			return {
                 ...state,
                 sites: {
+                    ...state.sites,
+                    data:  state.sites.data.set(action.site.id, action.site)
+                },
+                currentSite: {
                     status: Statuses.created,
-                    data: state.sites.data.set(action.site.id, action.site)
+                    data: action.site
                 }
             }
         case Types.SET_CURRENT:
             return {
                 ...state,
                 currentSite: {
-                    ...state.currentSite,
-                    data: { ...state.sites.data.find(o => o.id == action.siteId)} as Sites
+                    status: Statuses.set,
+                    data: state.sites.data.get(action.siteId) as Sites
+                }
+            }
+        case Types.UPDATE_SITE:
+            return {
+                ...state,
+                sites: {
+                    ...state.sites,
+                    data: state.sites.data.set(action.site.id, action.site)
+                },
+                currentSite: {
+                    status: Statuses.updated,
+                    data: action.site
                 }
             }
         case Types.SITE_IN_PROCESS:

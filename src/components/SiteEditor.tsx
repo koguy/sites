@@ -1,13 +1,14 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {Form, Input, Button, Upload, Icon, Modal} from 'antd';
+import {Form, Input, Button, Upload, Icon, Modal, notification} from 'antd';
 import {FormComponentProps} from 'antd/lib/form';
 import {IApplicationState} from 'src/store';
-import {Actions, ISitesState} from '../store/sites';
+import {Actions, ISitesState, Statuses} from '../store/sites';
 import {Sites} from '../models/Sites';
 import {RouteComponentProps} from 'react-router-dom';
 import {UploadFile} from 'antd/lib/upload/interface';
 import {List} from 'immutable';
+import {formItemLayout, tailFormItemLayout} from '../Common';
 
 interface IPictureState {
     previewVisible: boolean,
@@ -25,6 +26,12 @@ interface IState {
     isNew: boolean,
     picturesState: IPictureState
 }
+
+const openNotification = (type, message) => {
+    notification[type]({
+      message,
+    });
+  };
 
 class SiteEditor extends React.Component<Prop, IState> {
     constructor(props) {
@@ -64,22 +71,24 @@ class SiteEditor extends React.Component<Prop, IState> {
 
     handleSave() {
         let {getFieldValue} = this.props.form;
-        let site = new Sites();
+        let site = {...this.state.site}
         site.name = getFieldValue("Name");
         site.url = getFieldValue("Url");
         site.description = getFieldValue("Description");
 
-        var iiiii = getFieldValue("image");
         let imagesList: List<string> = List<string>();
-        this.state.picturesState.fileList.forEach(value => 
-            imagesList.push(value.url)
-        )
-        iiiii.array.forEach(element => {
-            imagesList.push(element.response)
-        });
-        site.images = iiiii;
-
-        this.props.create(site);
+        for(var i=0; i<this.state.picturesState.fileList.length; i++) {
+            imagesList = imagesList.push(this.state.picturesState.fileList[i].response);
+        }
+        site.images = imagesList;
+        if (this.state.isNew) {
+            this.props.create(site);
+            openNotification('success', "Created");
+        } 
+        else {
+            this.props.update(site);
+            openNotification('success', "Saved");
+        }
     }
 
     handleCancelPreview() {
@@ -120,57 +129,58 @@ class SiteEditor extends React.Component<Prop, IState> {
             </div>
         );
         let site = this.state.site;
+
         return <div>
-            <Form>
-                <FormItem label="Name">
-                    {getFieldDecorator('Name', {
+                <Form>
+                    <FormItem {...formItemLayout} label="Name">
+                        {getFieldDecorator('Name', {
+                            rules:[],
+                            initialValue: site.name || null
+                        })(
+                            <Input />
+                        )}
+                    </FormItem>
+                    <FormItem {...formItemLayout} label="Url">
+                        {getFieldDecorator('Url', {
+                            rules:[],
+                            initialValue: site.url || null
+                        })(
+                            <Input />
+                        )}
+                    </FormItem>
+                    <FormItem {...formItemLayout} label="Description">
+                        {getFieldDecorator('Description', {
+                            rules:[],
+                            initialValue: site.description || null
+                        })(
+                            <Input />
+                        )}
+                    </FormItem>
+                    {this.state.isNew ||
+                    <FormItem {...formItemLayout} label="Images">
+                    {getFieldDecorator("image", {
                         rules:[],
-                        initialValue: site.name || null
-                    })(
-                        <Input />
+                        
+                    }) (
+                        <Upload
+                            action={"http://localhost:5000/api/sites/" + site.id.toString() + "/image" }
+                            listType="picture-card"
+                            fileList={fileList}
+                            onPreview={this.handlePreview}
+                            onChange={this.handleChangeImages}>
+                                {fileList.length >= 3 ? null : uploadButton}
+                        </Upload>
                     )}
-                </FormItem>
-                <FormItem label="Url">
-                    {getFieldDecorator('Url', {
-                        rules:[],
-                        initialValue: site.url || null
-                    })(
-                        <Input />
-                    )}
-                </FormItem>
-                <FormItem label="Description">
-                    {getFieldDecorator('Description', {
-                        rules:[],
-                        initialValue: site.description || null
-                    })(
-                        <Input />
-                    )}
-                </FormItem>
-                {this.state.isNew ||
-                <FormItem label="Images">
-                {getFieldDecorator("image", {
-                    rules:[],
-                    
-                }) (
-                    <Upload
-                        action={"http://localhost:5000/api/sites/" + site.id.toString() + "/image" }
-                        listType="picture-card"
-                        fileList={fileList}
-                        onPreview={this.handlePreview}
-                        onChange={this.handleChangeImages}>
-                            {fileList.length >= 3 ? null : uploadButton}
-                    </Upload>
-                )}
-                </FormItem>
-                }
-                <FormItem>
-                    <Button type='primary' onClick={this.handleSave}>{this.state.isNew ? 'Create' : 'Save'}</Button>
-                </FormItem>
-            </Form>
-            <Modal visible={previewVisible} footer={null} onCancel={this.handleCancelPreview}>
-                <img alt="example" style={{width: '100%'}} src={previewImage} />
-            </Modal>
-        </div>
+                    </FormItem>
+                    }
+                    <FormItem {...tailFormItemLayout}>
+                        <Button type='primary' onClick={this.handleSave}>{this.state.isNew ? 'Create' : 'Save'}</Button>
+                    </FormItem>
+                </Form>
+                <Modal visible={previewVisible} footer={null} onCancel={this.handleCancelPreview}>
+                    <img alt="example" style={{width: '100%'}} src={previewImage} />
+                </Modal>
+            </div>
     }
 }
 
