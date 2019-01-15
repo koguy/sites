@@ -1,6 +1,12 @@
 import { Reducer } from "redux";
 import {Sites} from '../models/Sites';
 import {Map} from 'immutable';
+import {TypeOfSite} from '../models/TypeOfSite';
+
+export interface ITypeOfSite {
+    status: string,
+    data: Array<TypeOfSite>
+}
 
 export interface ISitesListState {
     status: string,
@@ -13,7 +19,8 @@ export interface ICurrentSiteState {
 
 export interface ISitesState {
     sites: ISitesListState,
-    currentSite: ICurrentSiteState
+    currentSite: ICurrentSiteState,
+    typeOfSiteList: ITypeOfSite
 }
 
 export const Statuses = {
@@ -39,6 +46,10 @@ export namespace Types {
     export const SITE_IN_PROCESS = "SITE_IN_PROCESS";
     export const LIST_IN_PROCESS = "LIST_IN_PROCESS";
     export const SET_CURRENT = "SET_CURRENT";
+    export const DELETE_SITE = "DELETE_SITE";
+    export const CLEAR_CURRENT = "CLEAR_CURRENT";
+    export const FETCH_TYPE_OF_SITE_LIST = "FETCH_TYPE_OF_SITE_LIST";
+    export const FETCHING_TYPE_OF_SITE_LIST = "FETCHING_TYPE_OF_SITE_LIST";
 }
 
 export namespace IActions{
@@ -58,6 +69,10 @@ export namespace IActions{
         type: 'UPDATE_SITE',
         site: Sites
     }
+    export interface IDelete {
+        type: 'DELETE_SITE',
+        siteId: number
+    }
     export interface ISiteInProcess {
         type: 'SITE_IN_PROCESS',
         status: string
@@ -65,6 +80,16 @@ export namespace IActions{
     export interface IListInProcess {
         type: 'LIST_IN_PROCESS',
         status: string
+    }
+    export interface IClearCurrent {
+        type: 'CLEAR_CURRENT',
+    }
+    export interface IFetchTypeList {
+        type: 'FETCH_TYPE_OF_SITE_LIST',
+        typeOfSiteList: Array<TypeOfSite>
+    }
+    export interface IFetchingTypeList {
+        type: 'FETCHING_TYPE_OF_SITE_LIST'
     }
 }
 
@@ -94,6 +119,12 @@ export namespace Actions {
             site
         }
     }
+    export const deleteSite = (siteId: number): IActions.IDelete => {
+        return {
+            type: Types.DELETE_SITE,
+            siteId
+        }
+    }
     export const siteInProcess = (status: string): IActions.ISiteInProcess => {
         return {
             type: Types.SITE_IN_PROCESS,
@@ -104,6 +135,22 @@ export namespace Actions {
         return {
             type: Types.LIST_IN_PROCESS,
             status
+        }
+    }
+    export const clearCurrent = (): IActions.IClearCurrent => {
+        return {
+            type: Types.CLEAR_CURRENT
+        }
+    }
+    export const fetchTypeList = (typeOfSiteList: Array<TypeOfSite>): IActions.IFetchTypeList => {
+        return {
+            type: Types.FETCH_TYPE_OF_SITE_LIST,
+            typeOfSiteList
+        }
+    }
+    export const fetchingTypeList = (): IActions.IFetchingTypeList => {
+        return {
+            type: Types.FETCHING_TYPE_OF_SITE_LIST,
         }
     }
 
@@ -148,6 +195,9 @@ export namespace Actions {
         setCurrent: (siteId: number) => (dispatch) => {
             dispatch(setCurrent(siteId));
         },
+        clearCurrent: () => (dispatch) => {
+            dispatch(clearCurrent());
+        },
         update: (site) => (dispatch) => {
             dispatch(siteInProcess(Statuses.isUpdating));
             fetch("http://localhost:5000/api/sites/" + site.id.toString() , {
@@ -170,6 +220,32 @@ export namespace Actions {
             });
             //.catch(error =>
               //  console.error("An error occured while POST"));
+        },
+        delete: (siteId) => (dispatch) => {
+            fetch("http://localhost:5000/api/sites/" + siteId.toString(), {
+                method: "DELETE"
+            })
+            .then(response => {
+                if (response.ok) {
+                    dispatch(deleteSite(siteId));
+                    dispatch(clearCurrent());
+                }
+            });
+        },
+        fetchTypeOfSiteList:() => (dispatch) => {
+            dispatch(fetchingTypeList());
+            fetch("http://localhost:5000/api/typeofsite", {
+                method: "GET",
+            })
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
+                    if (data)
+                        dispatch(fetchTypeList(data));
+                })
+                .catch(error =>
+                    console.error("An error occured while PUT"));
         }
 	}
 }
@@ -182,6 +258,10 @@ const initialState: ISitesState = {
     currentSite: {
         status: Statuses.none,
         data: new Sites()
+    },
+    typeOfSiteList: {
+        status: Statuses.none,
+        data: new Array<TypeOfSite>()
     }
 };
 
@@ -193,7 +273,8 @@ function convertToImmutableMap(sites: Array<Sites>): Map<number, Sites> {
     return sitesMap;
 }
 
-type KnowAction = IActions.IFetchList | IActions.ICreate | IActions.ISiteInProcess | IActions.IListInProcess | IActions.ISetCurrentSite | IActions.IUpdate;
+type KnowAction = IActions.IFetchList | IActions.ICreate | IActions.ISiteInProcess | IActions.IListInProcess | IActions.ISetCurrentSite | IActions.IUpdate 
+                    | IActions.IDelete | IActions.IClearCurrent | IActions.IFetchTypeList | IActions.IFetchingTypeList;
 
 export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState, action: KnowAction) => {
 	switch (action.type) {
@@ -225,6 +306,14 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
                     data: state.sites.data.get(action.siteId) as Sites
                 }
             }
+        case Types.CLEAR_CURRENT:
+            return {
+                ...state,
+                currentSite: {
+                    status: Statuses.none,
+                    data: new Sites()
+                }
+            }
         case Types.UPDATE_SITE:
             return {
                 ...state,
@@ -236,6 +325,14 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
                     status: Statuses.updated,
                     data: action.site
                 }
+            }
+        case Types.DELETE_SITE:
+            return {
+                ...state,
+                sites: {
+                    ...state.sites,
+                    data: state.sites.data.remove(action.siteId)
+                },
             }
         case Types.SITE_IN_PROCESS:
             return {
@@ -251,6 +348,22 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
                 sites: {
                     ...state.sites,
                     status: action.status,
+                }
+            }
+        case Types.FETCH_TYPE_OF_SITE_LIST:
+            return {
+                ...state,
+                typeOfSiteList: {
+                    status: Statuses.loaded,
+                    data: action.typeOfSiteList
+                }
+            }
+        case Types.FETCHING_TYPE_OF_SITE_LIST:
+            return {
+                ...state,
+                typeOfSiteList: {
+                    ...state.typeOfSiteList,
+                    status: Statuses.isLoading 
                 }
             }
 		default:

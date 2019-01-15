@@ -2,8 +2,10 @@ import {combineReducers, applyMiddleware, createStore} from 'redux';
 import {connectRouter, routerMiddleware} from 'connected-react-router';
 import thunk from 'redux-thunk';
 import {History} from 'history';
-import {ISitesState, reducer} from './sites';
+import {ISitesState, reducer as sitesReducer} from './sites';
 import {composeWithDevTools} from 'redux-devtools-extension';
+import {persistStore, persistReducer} from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
 
 declare global {
     interface Window { devToolsExtension: never; }
@@ -14,8 +16,23 @@ export interface IApplicationState {
 }
 
 export function configureStore(history: History<any>, initialState: IApplicationState) {
+    
+    // const persistConfig = {
+    //     key: 'root',
+    //     storage
+    // }
+    
+    // const sitesPersistConfig = {
+    //     key: 'sites',
+    //     storage,
+    //     blacklist: ['typeOfSiteList', 'sites']
+    // }
+
+    // const reducers = {
+    //     sites: persistReducer(sitesPersistConfig, sitesReducer)
+    // };
     const reducers = {
-        sites: reducer
+        sites: sitesReducer
     };
 
     const middleware = [
@@ -34,9 +51,14 @@ export function configureStore(history: History<any>, initialState: IApplication
         router: connectRouter(history)
     });
 
-    return createStore(
+    //const persistedReducer = persistReducer(persistConfig, rootReducer);
+
+    
+    let store = createStore(
         rootReducer,
-//        compose(applyMiddleware(...middleware), ...enhancers)
-        composeWithDevTools(applyMiddleware(...middleware))
-    );
+        //compose(applyMiddleware(...middleware), ...enhancers)
+        composeWithDevTools(applyMiddleware(...middleware)));
+    let persistor = persistStore(store);
+ 
+    return {store, persistor};
 }

@@ -10,7 +10,7 @@ export default class Layout extends React.Component {
         return <LayoutAntd>
             <Header>
                 <Menu mode="horizontal" theme="dark" defaultSelectedKeys={['1']}>
-                    <MenuItem key="1">Main</MenuItem>
+                    <MenuItem key="1"><Link to='/'>Main</Link></MenuItem>
                     <MenuItem key='2'><Link to='/sites'>Sites</Link></MenuItem>
                 </Menu>
             </Header>
