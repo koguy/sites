@@ -14,6 +14,6 @@ class SiteView extends React.Component {
 }
 
 export default connect(
-    (state: IApplicationState) => state.sites.currentSite,
+    (state: IApplicationState) => state.sites.current,
     Actions.actionCreators
 )(SiteView);

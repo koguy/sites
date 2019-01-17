@@ -1,12 +1,6 @@
 import { Reducer } from "redux";
 import {Sites} from '../models/Sites';
 import {Map} from 'immutable';
-import {TypeOfSite} from '../models/TypeOfSite';
-
-export interface ITypeOfSite {
-    status: string,
-    data: Array<TypeOfSite>
-}
 
 export interface ISitesListState {
     status: string,
@@ -18,9 +12,8 @@ export interface ICurrentSiteState {
 }
 
 export interface ISitesState {
-    sites: ISitesListState,
-    currentSite: ICurrentSiteState,
-    typeOfSiteList: ITypeOfSite
+    list: ISitesListState,
+    current: ICurrentSiteState,
 }
 
 export const Statuses = {
@@ -48,8 +41,6 @@ export namespace Types {
     export const SET_CURRENT = "SET_CURRENT";
     export const DELETE_SITE = "DELETE_SITE";
     export const CLEAR_CURRENT = "CLEAR_CURRENT";
-    export const FETCH_TYPE_OF_SITE_LIST = "FETCH_TYPE_OF_SITE_LIST";
-    export const FETCHING_TYPE_OF_SITE_LIST = "FETCHING_TYPE_OF_SITE_LIST";
 }
 
 export namespace IActions{
@@ -83,13 +74,6 @@ export namespace IActions{
     }
     export interface IClearCurrent {
         type: 'CLEAR_CURRENT',
-    }
-    export interface IFetchTypeList {
-        type: 'FETCH_TYPE_OF_SITE_LIST',
-        typeOfSiteList: Array<TypeOfSite>
-    }
-    export interface IFetchingTypeList {
-        type: 'FETCHING_TYPE_OF_SITE_LIST'
     }
 }
 
@@ -140,17 +124,6 @@ export namespace Actions {
     export const clearCurrent = (): IActions.IClearCurrent => {
         return {
             type: Types.CLEAR_CURRENT
-        }
-    }
-    export const fetchTypeList = (typeOfSiteList: Array<TypeOfSite>): IActions.IFetchTypeList => {
-        return {
-            type: Types.FETCH_TYPE_OF_SITE_LIST,
-            typeOfSiteList
-        }
-    }
-    export const fetchingTypeList = (): IActions.IFetchingTypeList => {
-        return {
-            type: Types.FETCHING_TYPE_OF_SITE_LIST,
         }
     }
 
@@ -231,37 +204,18 @@ export namespace Actions {
                     dispatch(clearCurrent());
                 }
             });
-        },
-        fetchTypeOfSiteList:() => (dispatch) => {
-            dispatch(fetchingTypeList());
-            fetch("http://localhost:5000/api/typeofsite", {
-                method: "GET",
-            })
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data)
-                        dispatch(fetchTypeList(data));
-                })
-                .catch(error =>
-                    console.error("An error occured while PUT"));
         }
 	}
 }
 
 const initialState: ISitesState = {
-    sites: {
+    list: {
         status: Statuses.none,
         data: Map<number, Sites>()
     },
-    currentSite: {
+    current: {
         status: Statuses.none,
         data: new Sites()
-    },
-    typeOfSiteList: {
-        status: Statuses.none,
-        data: new Array<TypeOfSite>()
     }
 };
 
@@ -274,14 +228,14 @@ function convertToImmutableMap(sites: Array<Sites>): Map<number, Sites> {
 }
 
 type KnowAction = IActions.IFetchList | IActions.ICreate | IActions.ISiteInProcess | IActions.IListInProcess | IActions.ISetCurrentSite | IActions.IUpdate 
-                    | IActions.IDelete | IActions.IClearCurrent | IActions.IFetchTypeList | IActions.IFetchingTypeList;
+                    | IActions.IDelete | IActions.IClearCurrent;
 
 export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState, action: KnowAction) => {
 	switch (action.type) {
         case Types.FETCH_SITES_LIST:
             return {
                 ...state,
-                sites: {
+                list: {
                     status: Statuses.loaded,
                     data: convertToImmutableMap(action.sitesList)
                 }
@@ -289,11 +243,11 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
 		case Types.CREATE_SITE:
 			return {
                 ...state,
-                sites: {
-                    ...state.sites,
-                    data:  state.sites.data.set(action.site.id, action.site)
+                list: {
+                    ...state.list,
+                    data:  state.list.data.set(action.site.id, action.site)
                 },
-                currentSite: {
+                current: {
                     status: Statuses.created,
                     data: action.site
                 }
@@ -301,15 +255,15 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
         case Types.SET_CURRENT:
             return {
                 ...state,
-                currentSite: {
+                current: {
                     status: Statuses.set,
-                    data: state.sites.data.get(action.siteId) as Sites
+                    data: state.list.data.get(action.siteId) as Sites
                 }
             }
         case Types.CLEAR_CURRENT:
             return {
                 ...state,
-                currentSite: {
+                current: {
                     status: Statuses.none,
                     data: new Sites()
                 }
@@ -317,9 +271,9 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
         case Types.UPDATE_SITE:
             return {
                 ...state,
-                sites: {
-                    ...state.sites,
-                    data: state.sites.data.set(action.site.id, action.site)
+                list: {
+                    ...state.list,
+                    data: state.list.data.set(action.site.id, action.site)
                 },
                 currentSite: {
                     status: Statuses.updated,
@@ -329,41 +283,25 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
         case Types.DELETE_SITE:
             return {
                 ...state,
-                sites: {
-                    ...state.sites,
-                    data: state.sites.data.remove(action.siteId)
+                list: {
+                    ...state.list,
+                    data: state.list.data.remove(action.siteId)
                 },
             }
         case Types.SITE_IN_PROCESS:
             return {
                 ...state,
-                currentSite: {
-                    ...state.currentSite,
+                current: {
+                    ...state.current,
                     status: action.status,
                 }
             }
         case Types.LIST_IN_PROCESS:
             return {
                 ...state,
-                sites: {
-                    ...state.sites,
+                list: {
+                    ...state.list,
                     status: action.status,
-                }
-            }
-        case Types.FETCH_TYPE_OF_SITE_LIST:
-            return {
-                ...state,
-                typeOfSiteList: {
-                    status: Statuses.loaded,
-                    data: action.typeOfSiteList
-                }
-            }
-        case Types.FETCHING_TYPE_OF_SITE_LIST:
-            return {
-                ...state,
-                typeOfSiteList: {
-                    ...state.typeOfSiteList,
-                    status: Statuses.isLoading 
                 }
             }
 		default:

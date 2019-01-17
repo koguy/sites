@@ -1,5 +1,4 @@
 import {List} from 'immutable';
-import {TypeOfSite} from './TypeOfSite';
 
 export class Sites {
     id: number;
@@ -9,16 +8,16 @@ export class Sites {
     description: string;
     //images: List<string>;
     tags: List<string>;
-    type: TypeOfSite;
+    type: string;
 
     constructor() {
-        this.id = -1;
+        this.id = 0;
         this.name = "";
         this.image = "";
         this.url = "";
         this.description = "";
         //this.images = List<string>();
         this.tags = List<string>();
-        this.type = new TypeOfSite();
+        this.type = "";
     }
 }

@@ -24,18 +24,16 @@ class SitesList extends React.Component<Prop, IState> {
     }
 
     componentDidMount() {
-        if (this.props.sites.status != Statuses.loaded)
+        if (this.props.list.status != Statuses.loaded)
             this.props.fetchList();
-        if (this.props.typeOfSiteList.status != Statuses.loaded)
-            this.props.fetchTypeOfSiteList();
     }
 
     render() {
-        if (this.props.sites.status == Statuses.isLoading) {
+        if (this.props.list.status == Statuses.isLoading) {
             const antIcon = <Icon type="loading" style={{fontSize:24}} spin />
             return <Spin indicator={antIcon} />
         }
-        else if (this.props.sites.status == Statuses.loaded) {
+        else if (this.props.list.status == Statuses.loaded) {
             const columns = [{
                 title: 'Id',
                 dataIndex: 'id',
@@ -69,23 +67,13 @@ class SitesList extends React.Component<Prop, IState> {
             }];
 
             let data: Array<any> = [];
-            //let sites = this.props.sites.data;
-            this.props.sites.data.forEach(item => 
+            this.props.list.data.forEach(item => 
                 data.push({
                     key: item.id.toString(),
                     id: item.id,
                     url: item.url,
                     name: item.name
                 }));
-
-            // for(var i=0; i<=2; i++) {
-            //     data.push({
-            //         key: sites[i].id.toString(),
-            //         id: sites[i].id,
-            //         url: sites[i].url,
-            //         name: sites[i].name
-            //     })
-            // }
 
             return <div>
                 <Row>

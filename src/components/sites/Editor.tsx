@@ -9,8 +9,7 @@ import {RouteComponentProps} from 'react-router-dom';
 import {List} from 'immutable';
 import {formItemLayout, tailFormItemLayout} from '../../Common';
 import {Link} from 'react-router-dom';
-import { relativeTimeThreshold } from 'moment';
-import { TypeOfSite } from 'src/models/TypeOfSite';
+import {typeOfSiteList} from '../../Common';
 
 interface ILogoState {
     loading: boolean,
@@ -62,12 +61,12 @@ class SiteEditor extends React.Component<Prop, IState> {
         let isNew = this.props.location.state.isNew;
         let tags: Array<string> = [];
         if (!isNew) {
-            this.props.currentSite.data.tags.forEach(tag => tags.push(tag));
+            this.props.current.data.tags.forEach(tag => tags.push(tag));
         }
         
         this.state = {
             isNew: isNew,
-            site: isNew ? new Sites() : this.props.currentSite.data,
+            site: isNew ? new Sites() : this.props.current.data,
             tagsState: {
                 tags: tags,
                 inputVisible: false,
@@ -75,7 +74,7 @@ class SiteEditor extends React.Component<Prop, IState> {
             },
             logoState: {
                 loading: false,
-                imgUrl: this.props.currentSite.data.image
+                imgUrl: this.props.current.data.image
             }
         }
         
@@ -94,8 +93,7 @@ class SiteEditor extends React.Component<Prop, IState> {
 
         site.image = this.state.logoState.imgUrl;
 
-        let selectedTypeId = getFieldValue("Type");
-        site.type = this.props.typeOfSiteList.data.find(o => o.id == selectedTypeId) as TypeOfSite;
+        site.type = getFieldValue("Type");
 
         site.tags = List<string>(this.state.tagsState.tags);
 
@@ -112,8 +110,8 @@ class SiteEditor extends React.Component<Prop, IState> {
     }
 
     componentDidUpdate() {
-        if (this.state.site.id <= 0 && this.props.currentSite.data.id > 0)
-            this.setState({site: this.props.currentSite.data});
+        if (this.state.site.id <= 0 && this.props.current.data.id > 0)
+            this.setState({site: this.props.current.data});
     }
 
     handleLogoImageChange = (info) => {
@@ -168,9 +166,9 @@ class SiteEditor extends React.Component<Prop, IState> {
 
     renderOptions() {
         let typesOfSitesOptions: any[] =[];
-        this.props.typeOfSiteList.data.forEach((value, index) => {
+        typeOfSiteList.forEach((value, index) => {
             typesOfSitesOptions.push(
-                <Select.Option key={value.id.toString()} value={value.id}>
+                <Select.Option key={value.name.toString()} value={value.name}>
                     <Tooltip placement="left" title={value.description}>
                         {value.name}
                     </Tooltip>
@@ -232,7 +230,7 @@ class SiteEditor extends React.Component<Prop, IState> {
                     <FormItem {...formItemLayout} label="Type">
                             {getFieldDecorator('Type', {
                                 rules: [{required: true, message: "Выберите тип сайта!"}],
-                                initialValue: site.type.id || null
+                                initialValue: site.type || null
                             })(
                                 <Select>
                                     {this.renderOptions()}

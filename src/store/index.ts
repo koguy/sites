@@ -17,24 +17,14 @@ export interface IApplicationState {
 
 export function configureStore(history: History<any>, initialState: IApplicationState) {
     
-    // const persistConfig = {
-    //     key: 'root',
-    //     storage
-    // }
+    const persistConfig = {
+        key: 'root',
+        storage
+    }
     
-    // const sitesPersistConfig = {
-    //     key: 'sites',
-    //     storage,
-    //     blacklist: ['typeOfSiteList', 'sites']
-    // }
-
-    // const reducers = {
-    //     sites: persistReducer(sitesPersistConfig, sitesReducer)
-    // };
     const reducers = {
         sites: sitesReducer
     };
-
     const middleware = [
         thunk,
         routerMiddleware(history)
