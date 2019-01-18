@@ -275,7 +275,7 @@ export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState,
                     ...state.list,
                     data: state.list.data.set(action.site.id, action.site)
                 },
-                currentSite: {
+                current: {
                     status: Statuses.updated,
                     data: action.site
                 }
