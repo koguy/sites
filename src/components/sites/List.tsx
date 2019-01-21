@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {Table, Spin, Icon, Row, Col, Button, Divider, Popconfirm} from 'antd';
 import {IApplicationState} from 'src/store';
 import {Actions, ISitesState} from '../../store/sites';
-import {Statuses} from '../../store/sites';
+import {Statuses} from '../../store/cnst';
 import {Link} from 'react-router-dom';
 
 type Prop = ISitesState
@@ -24,8 +24,7 @@ class SitesList extends React.Component<Prop, IState> {
     }
 
     componentDidMount() {
-        if (this.props.list.status != Statuses.loaded)
-            this.props.fetchList();
+        this.props.fetchList();
     }
 
     render() {

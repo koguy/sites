@@ -20,11 +20,11 @@ const {store, persistor} = configureStore(history, initialState);
 ReactDOM.render(
     <AppContainer>
         <Provider store={store}>
-            {/*<PersistGate loading={null} persistor={persistor} >*/}
+            <PersistGate loading={null} persistor={persistor} >
                 <ConnectedRouter history={history}>
                     <App />
                 </ConnectedRouter>
-            {/*</PersistGate>*/}
+            </PersistGate>
         </Provider>
     </AppContainer>,
     document.getElementById('root') as HTMLElement

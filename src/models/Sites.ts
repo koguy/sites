@@ -7,7 +7,7 @@ export class Sites {
     url: string;
     description: string;
     //images: List<string>;
-    tags: List<string>;
+    tags: Array<string>;
     type: string;
 
     constructor() {
@@ -17,7 +17,7 @@ export class Sites {
         this.url = "";
         this.description = "";
         //this.images = List<string>();
-        this.tags = List<string>();
+        this.tags = [];
         this.type = "";
     }
 }
