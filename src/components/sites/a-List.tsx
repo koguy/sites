@@ -2,8 +2,8 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {Table, Spin, Icon, Row, Col, Button, Divider, Popconfirm} from 'antd';
 import {IApplicationState} from 'src/store';
-import {Actions, ISitesState} from '../../store/sites';
-import {Statuses} from '../../store/cnst';
+import {Actions, ISitesState} from '../../store/admin/sites';
+import {Statuses} from '../../store/admin/cnst';
 import {Link} from 'react-router-dom';
 
 type Prop = ISitesState
@@ -94,6 +94,6 @@ class SitesList extends React.Component<Prop, IState> {
 }
 
 export default connect(
-    (state: IApplicationState) => state.sites,
+    (state: IApplicationState) => state.a_sites,
     Actions.actionCreators
 )(SitesList);

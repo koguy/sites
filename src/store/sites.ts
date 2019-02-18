@@ -1,58 +1,15 @@
-import { Reducer } from "redux";
 import {Sites} from '../models/Sites';
-import {Map} from 'immutable';
-import {Statuses, Types} from './cnst';
-
-export interface ISitesListState {
-    status: string,
-    data: Map<number, Sites>
-}
-export interface ICurrentSiteState {
-    status: string,
-    data: Sites
-}
-
-export interface ISitesState {
-    list: ISitesListState,
-    current: ICurrentSiteState,
-}
+import {Reducer} from 'redux';
+import {Types} from './types';
 
 export namespace IActions{
     export interface IFetchList {
         type: 'FETCH_SITES_LIST',
         sitesList: Array<Sites>
     }
-    export interface IGet {
-        type: 'GET_SITE',
-        site: Sites
-    }
-    export interface ICreate {
-        type: 'CREATE_SITE',
-        site: Sites
-    }
-    export interface IUpdate {
-        type: 'UPDATE_SITE',
-        site: Sites
-    }
-    export interface IDelete {
-        type: 'DELETE_SITE',
-        siteId: number
-    }
-    export interface ISetCurrentSite {
-        type: 'SET_CURRENT',
-        siteId: number,
-        status: string | null
-    }
-    export interface IClearCurrent {
-        type: 'CLEAR_CURRENT',
-    }
-    export interface ISiteInProcess {
-        type: 'SITE_IN_PROCESS',
-        status: string
-    }
-    export interface IListInProcess {
-        type: 'LIST_IN_PROCESS',
-        status: string
+    export interface IFetchListByHeading {
+        type: 'FETCH_SITES_LIST_BY_HEADING',
+        sitesList: Array<Sites>
     }
 }
 
@@ -64,58 +21,16 @@ export namespace Actions {
             sitesList
         }
     }
-    export const get = (site: Sites): IActions.IGet => {
+    export const fetchListByHeading = (sitesList: Array<Sites>): IActions.IFetchListByHeading => {
         return {
-            type: Types.GET_SITE,
-            site
-        }
-    }
-	export const create = (newSite: Sites): IActions.ICreate => {
-		return {
-			type: Types.CREATE_SITE,
-			site: newSite
-		}
-    }
-    export const update = (site: Sites): IActions.IUpdate => {
-        return {
-            type: Types.UPDATE_SITE,
-            site
-        }
-    }
-    export const deleteSite = (siteId: number): IActions.IDelete => {
-        return {
-            type: Types.DELETE_SITE,
-            siteId
-        }
-    }
-    export const setCurrent = (siteId: number, status?: string | null): IActions.ISetCurrentSite => {
-        return {
-            type: Types.SET_CURRENT,
-            siteId,
-            status
-        }
-    }
-    export const clearCurrent = (): IActions.IClearCurrent => {
-        return {
-            type: Types.CLEAR_CURRENT
-        }
-    }
-    export const siteInProcess = (status: string): IActions.ISiteInProcess => {
-        return {
-            type: Types.SITE_IN_PROCESS,
-            status
-        }
-    }
-    export const listInProcess = (status: string): IActions.IListInProcess => {
-        return {
-            type: Types.LIST_IN_PROCESS,
-            status
+            type: Types.FETCH_SITES_LIST_BY_HEADING,
+            sitesList
         }
     }
 
-	export const actionCreators = {
+    export const actionCreators = {
+
         fetchList:() => (dispatch) => {
-            dispatch(listInProcess(Statuses.isLoading));
             fetch("http://localhost:5000/api/sites", {
                 method: "GET",
             })
@@ -129,194 +44,31 @@ export namespace Actions {
                 .catch(error =>
                     console.error("An error occured while FETCH"));
         },
-        get:(siteId: number) => (dispatch) => {
-            fetch("http://localhost:5000/api/sites/" + siteId.toString(), {
-                method: "GET"
+        fetchListByHeading: (headingId: number) => (dispatch) => {
+            fetch("http://localhost:5000/api/sites/heading/" + headingId.toString(), {
+                method: "GET",
             })
                 .then(response => {
                     return response.json();
                 })
                 .then(data => {
-                    if (data) {
-                        dispatch(get(data));
-                    }
+                    if (data)
+                        dispatch(fetchListByHeading(data));
                 })
                 .catch(error =>
-                    console.error("An error occured while GET"));
-        },
-        create: (site) => (dispatch) => {
-            dispatch(siteInProcess(Statuses.isCreating));
-            fetch("http://localhost:5000/api/sites", {
-                method: "PUT",
-                headers: new Headers({
-                    "accept": "application/json",
-                    "content-type": "application/json"
-                }),
-                body: JSON.stringify(site)
-            })
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data) {
-                        dispatch(create(data));
-                        dispatch(setCurrent(data.id, Statuses.created));
-                    }
-                })
-                .catch(error =>
-                    console.error("An error occured while PUT"));
-        },
-        update: (site) => (dispatch) => {
-            dispatch(siteInProcess(Statuses.isUpdating));
-            fetch("http://localhost:5000/api/sites/" + site.id.toString() , {
-                method: "POST",
-                headers: new Headers({
-                    "accept": "application/json",
-                    "content-type": "application/json"
-                }),
-                body: JSON.stringify(site)
-            })
-            .then(response => {
-                if (response.ok)
-                    return response.json();
-            })
-            .then(data => {
-                if (data) {
-                    dispatch(update(data));
-                    dispatch(setCurrent(data.id, Statuses.updated));
-                }
-            });
-            //.catch(error =>
-              //  console.error("An error occured while POST"));
-        },
-        delete: (siteId) => (dispatch) => {
-            fetch("http://localhost:5000/api/sites/" + siteId.toString(), {
-                method: "DELETE"
-            })
-            .then(response => {
-                if (response.ok) {
-                    dispatch(deleteSite(siteId));
-                    dispatch(clearCurrent());
-                }
-            });
-        },
-        setCurrent: (siteId: number) => (dispatch) => {
-            dispatch(setCurrent(siteId));
-        },
-        clearCurrent: () => (dispatch) => {
-            dispatch(clearCurrent());
+                    console.error("An error occured while FETCH"));
         }
-	}
-}
-
-const initialState: ISitesState = {
-    list: {
-        status: Statuses.none,
-        data: Map<number, Sites>()
-    },
-    current: {
-        status: Statuses.none,
-        data: new Sites()
     }
-};
-
-function convertToImmutableMap(sites: Array<Sites>): Map<number, Sites> {
-    let sitesMap = Map<number, Sites>();
-    sites.forEach(value => {
-        sitesMap = sitesMap.set(value.id, value);
-    });
-    return sitesMap;
 }
 
-type KnowAction = IActions.IFetchList | IActions.IGet | IActions.ICreate | IActions.ISiteInProcess | IActions.IListInProcess | IActions.ISetCurrentSite | IActions.IUpdate 
-                    | IActions.IDelete | IActions.IClearCurrent;
+type KnowAction = IActions.IFetchList | IActions.IFetchListByHeading;
 
-export const reducer: Reducer<ISitesState> = (state: ISitesState = initialState, action: KnowAction) => {
-	switch (action.type) {
-        case Types.FETCH_SITES_LIST:
-            return {
-                ...state,
-                list: {
-                    status: Statuses.loaded,
-                    data: convertToImmutableMap(action.sitesList)
-                }
-            }
-        case Types.GET_SITE:
-			return {
-                ...state,
-                current: {
-                    status: Statuses.loaded,
-                    data:  action.site
-                }
-            }
-		case Types.CREATE_SITE:
-			return {
-                ...state,
-                list: {
-                    ...state.list,
-                    data:  state.list.data.set(action.site.id, action.site)
-                }
-            }
-        case Types.UPDATE_SITE:
-            return {
-                ...state,
-                list: {
-                    ...state.list,
-                    data: state.list.data.set(action.site.id, action.site)
-                }
-            }
-        case Types.DELETE_SITE:
-            return {
-                ...state,
-                list: {
-                    ...state.list,
-                    data: state.list.data.remove(action.siteId)
-                },
-            }
-        case Types.SET_CURRENT:
-            return {
-                ...state,
-                current: {
-                    status: action.status || Statuses.set,
-                    data: state.list.data.get(action.siteId) as Sites
-                }
-            }
-        case Types.CLEAR_CURRENT:
-            return {
-                ...state,
-                current: {
-                    status: Statuses.none,
-                    data: new Sites()
-                }
-            }
-        case Types.SITE_IN_PROCESS:
-            return {
-                ...state,
-                current: {
-                    ...state.current,
-                    status: action.status,
-                }
-            }
-        case Types.LIST_IN_PROCESS:
-            return {
-                ...state,
-                list: {
-                    ...state.list,
-                    status: action.status,
-                }
-            }
-		default:
-			return state;
-	}
-}
-
-export const currentIdReducer: Reducer<number> = (state: number = 0, action: KnowAction) => {
+export const sitesReducer: Reducer<Array<Sites>> = (state: Array<Sites> = new Array<Sites>() , action: KnowAction) => {
     switch (action.type) {
-        case Types.SET_CURRENT:
-            return action.siteId;
-        case Types.CLEAR_CURRENT:
-            return 0;
+        case Types.FETCH_SITES_LIST_BY_HEADING:
+        case Types.FETCH_SITES_LIST:
+            return action.sitesList;
         default:
-			return state;
+            return state;
     }
 }

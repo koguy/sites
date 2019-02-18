@@ -1,0 +1,17 @@
+export namespace Types {
+    export const SET_STATUS = "SET_STATUS";
+
+    export const FETCH_SITES_LIST = "FETCH_SITES_LIST";
+    export const FETCH_SITES_LIST_BY_HEADING = "FETCH_SITES_LIST_BY_HEADING";
+
+    export const FETCH_TYPE_OF_SITE_LIST = "FETCH_TYPE_OF_SITE_LIST";
+
+    export const FETCH_CATEGORY_LIST = "FETCH_CATEGORY_LIST";
+    export const SET_CURRENT_CATEGORY = "SET_CURRENT_CATEGORY";
+    export const CLEAR_CURRENT_CATEGORY = "CLEAR_CURRENT_CATEGORY";
+
+    export const GET_HEADING = "GET_HEADING";
+    export const SET_CURRENT_HEADING = "SET_CURRENT_HEADING";
+    export const CLEAR_CURRENT_HEADING = "CLEAR_CURRENT_HEADING";
+    
+}

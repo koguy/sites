@@ -3,15 +3,22 @@ import {connect} from 'react-redux';
 import {Form, Input, Button, Upload, Icon, notification, Select, Tag, Tooltip, message} from 'antd';
 import {FormComponentProps} from 'antd/lib/form';
 import {IApplicationState} from 'src/store';
-import {Actions as sitesActions} from '../../store/sites';
-import {Actions as typeOfSiteActions} from '../../store/typeOfSite';
+import {Actions as sitesActions, ICurrentSiteState} from '../../store/admin/sites';
+import {Actions as headingActions} from '../../store/admin/heading'; 
 import {Sites} from '../../models/Sites';
 import {RouteComponentProps} from 'react-router-dom';
 import {List} from 'immutable';
 import {formItemLayout, tailFormItemLayout} from '../../Common';
 import {Link} from 'react-router-dom';
 import { string } from 'prop-types';
-import { Statuses } from 'src/store/cnst';
+import { Statuses } from 'src/store/admin/cnst';
+import { Heading } from 'src/models/Heading';
+
+interface IEditorState {
+    headingList: Array<Heading>,
+    siteState: ICurrentSiteState,
+    id: number,
+}
 
 interface ILogoState {
     loading: boolean,
@@ -24,9 +31,9 @@ interface ITagState {
     inputValue: string
 }
 
-type Prop = IApplicationState
+type Prop = IEditorState
     & typeof sitesActions.actionCreators
-    & typeof typeOfSiteActions.actionCreators
+    & typeof headingActions.actionCreators
     & FormComponentProps;
 
 interface IState {
@@ -59,18 +66,18 @@ class SiteEditor extends React.Component<Prop, IState> {
     constructor(props) {
         super(props);
 
-        let isNew = this.props.currentSiteId == 0;
+        let isNew = this.props.id == 0;
         
         this.state = {
             isNew: isNew,
             tagsState: {
-                tags: this.props.sites.current.data.tags,
+                tags: this.props.siteState.data.tags,
                 inputVisible: false,
                 inputValue: ''
             },
             logoState: {
                 loading: false,
-                imgUrl: this.props.sites.current.data.image
+                imgUrl: this.props.siteState.data.image
             }
         }
         
@@ -82,15 +89,14 @@ class SiteEditor extends React.Component<Prop, IState> {
 
     handleSave() {
         let {getFieldValue} = this.props.form;
-        let site = {...this.props.sites.current.data}
+        let site = {...this.props.siteState.data}
         site.name = getFieldValue("Name");
         site.url = getFieldValue("Url");
         site.description = getFieldValue("Description");
 
         site.image = this.state.logoState.imgUrl;
 
-        site.type = getFieldValue("Type");
-
+        site.heading = this.props.headingList.find(o => o.id == getFieldValue("Heading"));
         site.tags = this.state.tagsState.tags;
 
         if (this.state.isNew) {
@@ -106,23 +112,23 @@ class SiteEditor extends React.Component<Prop, IState> {
     }
 
     componentDidMount() {
-        if (this.props.typeOfSiteList.status != Statuses.loaded)
-            this.props.fetchTypeOfSiteList();
-        if (this.props.sites.current.data.id == 0 && this.props.currentSiteId > 0)
-            this.props.get(this.props.currentSiteId);
+        if (this.props.siteState.data.id == 0 && this.props.id > 0)
+            this.props.get(this.props.id);
+        if (this.props.headingList.length == 0)
+            this.props.fetchHeadingList();
     }
     
     componentDidUpdate() {
-        if (this.props.sites.current.data.tags.length > 0 && this.state.tagsState.tags.length == 0 || this.props.sites.current.data.image && !this.state.logoState.imgUrl) {
+        if (this.props.siteState.data.tags.length > 0 && this.state.tagsState.tags.length == 0 || this.props.siteState.data.image && !this.state.logoState.imgUrl) {
             this.setState({
                 logoState: {
                     loading: false,
-                    imgUrl: this.props.sites.current.data.image
+                    imgUrl: this.props.siteState.data.image
                 },
                 tagsState: {
                     inputValue: '',
                     inputVisible: false,
-                    tags: this.props.sites.current.data.tags
+                    tags: this.props.siteState.data.tags
                 }
             })
         }
@@ -180,12 +186,10 @@ class SiteEditor extends React.Component<Prop, IState> {
 
     renderOptions() {
         let typesOfSitesOptions: any[] =[];
-        this.props.typeOfSiteList.list.forEach((value, index) => {
+        this.props.headingList.forEach((value, index) => {
             typesOfSitesOptions.push(
-                <Select.Option key={value.name.toString()} value={value.name}>
-                    <Tooltip placement="left" title={value.description}>
-                        {value.name}
-                    </Tooltip>
+                <Select.Option key={value.name.toString()} value={value.id}>
+                    {value.name}
                 </Select.Option>
             );
         });
@@ -205,7 +209,7 @@ class SiteEditor extends React.Component<Prop, IState> {
                 </div>
             </div>
         );
-        let site = this.props.sites.current.data;
+        let site = this.props.siteState.data;
 
         return <div>
                 <Form>
@@ -241,11 +245,11 @@ class SiteEditor extends React.Component<Prop, IState> {
                             <Input />
                         )}
                     </FormItem>
-                    {this.props.typeOfSiteList.status == Statuses.loaded
-                        && <FormItem {...formItemLayout} label="Type">
-                            {getFieldDecorator('Type', {
-                                rules: [{required: true, message: "Выберите тип сайта!"}],
-                                initialValue: site.type || null
+                    {this.props.headingList.length > 0
+                        && <FormItem {...formItemLayout} label="Heading">
+                            {getFieldDecorator('Heading', {
+                                rules: [{required: true, message: "Выберите рубрику сайта!"}],
+                                initialValue: site.heading.id || null
                             })(
                                 <Select>
                                     {this.renderOptions()}
@@ -303,6 +307,12 @@ class SiteEditor extends React.Component<Prop, IState> {
 }
 
 export default connect(
-    (state: IApplicationState) => state,
-    {...sitesActions.actionCreators, ...typeOfSiteActions.actionCreators}
+    (state: IApplicationState): IEditorState => {
+        return {
+            headingList: state.a_headingList,
+            siteState: state.a_sites.current,
+            id: state.a_currentSiteId
+        }
+    },
+    {...sitesActions.actionCreators, ...headingActions.actionCreators}
 )(Form.create()(SiteEditor));

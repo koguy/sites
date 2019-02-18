@@ -1,11 +1,11 @@
-export class TypeOfSite {
+import {Sites} from '../models/Sites';
+
+export class Heading {
     id: number;
     name: string;
-    description: string;
 
     constructor() {
         this.id = 0;
         this.name = "";
-        this.description = "";
     }
 }
