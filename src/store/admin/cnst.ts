@@ -9,7 +9,11 @@ export const Statuses = {
 	updated: "updated",
     isUpdating: "isUpdating",
     none: "none",
-    set: "set"
+    set: "set",
+    isLoggingIn: "isLoggingIn",
+    loggedIn: "loggedIn",
+    loginFailed: "loginFailed",
+    notAuthorized:  "notAuthorized"
 }
 
 export namespace Types {
@@ -29,5 +33,24 @@ export namespace Types {
     export const A_GET_SITE = "A_GET_SITE";
 
     export const A_FETCH_HEADING_LIST = "A_FETCH_HEADING_LIST";
+
+    export namespace alert {
+        export const SUCCESS = "ALERT_SUCCESS";
+        export const ERROR = "ALERT_ERROR";
+        export const CLEAR = "ALERT_CLEAR";
+    };
+    
+    export namespace user {
+        export const LOGIN_REQUEST = "USERS_LOGIN_REQUEST";
+        export const LOGIN_SUCCESS = "USERS_LOGIN_SUCCESS";
+        export const LOGIN_FAILURE = "USERS_LOGIN_FAILURE";
+
+        export const LOGOUT = "USERS_LOGOUT";
+
+        export const GETALL_REQUEST = "USERS_GETALL_REQUEST";
+        export const GETALL_SUCCESS = "USERS_GETALL_SUCCESS";
+        export const GETALL_FAILURE = "USERS_GETALL_FAILURE";
+    };
+    
     
 }

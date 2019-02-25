@@ -13,5 +13,5 @@ export namespace Types {
     export const GET_HEADING = "GET_HEADING";
     export const SET_CURRENT_HEADING = "SET_CURRENT_HEADING";
     export const CLEAR_CURRENT_HEADING = "CLEAR_CURRENT_HEADING";
-    
+
 }

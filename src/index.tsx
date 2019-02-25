@@ -11,10 +11,10 @@ import { ConnectedRouter } from 'connected-react-router';
 import {PersistGate} from 'redux-persist/integration/react';
 
 const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
-const history = createBrowserHistory({basename: baseUrl || undefined});
+export const history = createBrowserHistory({basename: baseUrl || undefined});
 
 const initialState = (window as any).initialReduxState as IApplicationState;
-const {store, persistor} = configureStore();
+export const {store, persistor} = configureStore();
 
 ReactDOM.render(
     <AppContainer>

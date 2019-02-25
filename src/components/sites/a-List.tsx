@@ -5,9 +5,11 @@ import {IApplicationState} from 'src/store';
 import {Actions, ISitesState} from '../../store/admin/sites';
 import {Statuses} from '../../store/admin/cnst';
 import {Link} from 'react-router-dom';
+import {Actions as authActions, IAuthState} from '../../store/admin/authentication';
 
 type Prop = ISitesState
-    & typeof Actions.actionCreators;
+    & typeof Actions.actionCreators
+    & typeof authActions.actionCreation;
 
 interface IState {
     //siteState: ISitesListState
@@ -56,7 +58,7 @@ class SitesList extends React.Component<Prop, IState> {
                     <span>
                         <Link to='/site/view' onClick={() => this.props.setCurrent(record)}>View</Link>
                         <Divider type="vertical" />
-                        <Link to={{ pathname: '/site/edit', state: {isNew: false} }} onClick={() => this.props.setCurrent(record.id)}>Edit</Link>
+                        <Link to={{ pathname: '/sites/edit', state: {isNew: false} }} onClick={() => this.props.setCurrent(record.id)}>Edit</Link>
                         <Divider type="vertical" />
                         <Popconfirm title="Are you sure delete this site?" onConfirm={() => this.props.delete(record.id)} >
                             <a href='#'>Delete</a>
@@ -77,7 +79,10 @@ class SitesList extends React.Component<Prop, IState> {
             return <div>
                 <Row>
                     <Col>
-                        <Button><Link to={{pathname: '/site/create', state: {isNew: true}}} onClick={() => this.props.clearCurrent()} >Create</Link></Button>
+                        <Button><Link to={{pathname: '/sites/create', state: {isNew: true}}} onClick={() => this.props.clearCurrent()} >Create</Link></Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={() => this.props.logout()}>Logout</Button>
                     </Col>
                 </Row>
                 <Row>
@@ -95,5 +100,5 @@ class SitesList extends React.Component<Prop, IState> {
 
 export default connect(
     (state: IApplicationState) => state.a_sites,
-    Actions.actionCreators
+    {...Actions.actionCreators, ...authActions.actionCreation}
 )(SitesList);

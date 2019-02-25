@@ -2,6 +2,7 @@ import { Reducer } from "redux";
 import {Sites} from '../../models/Sites';
 import {Map} from 'immutable';
 import {Statuses, Types} from './cnst';
+import {authHeader} from '../../helpers/auth.header';
 
 export interface ISitesListState {
     status: string,
@@ -116,8 +117,9 @@ export namespace Actions {
 	export const actionCreators = {
         fetchList:() => (dispatch) => {
             dispatch(listInProcess(Statuses.isLoading));
-            fetch("http://localhost:5000/api/sites", {
+            fetch("http://localhost:5000/api/sites/a", {
                 method: "GET",
+                headers: authHeader()
             })
                 .then(response => {
                     return response.json();

@@ -14,6 +14,7 @@ import {Category} from '../models/Category';
 import {Heading} from '../models/Heading';
 import {Sites} from '../models/Sites';
 import storageSession from 'redux-persist/lib/storage/session';
+import {authReducer, IAuthState, tokenReducer} from './admin/authentication';
 
 declare global {
     interface Window { devToolsExtension: never; }
@@ -23,6 +24,8 @@ export interface IApplicationState {
     a_sites: ISitesState,
     a_headingList: Array<Heading>,
     a_currentSiteId: number,
+    admin: IAuthState,
+    token: string,
 
     sites: Array<Sites>,
 
@@ -43,13 +46,15 @@ export function configureStore() {
     const persistConfig = {
         key: 'root',
         storage: storageSession,
-        whitelist: ['currentSiteId', 'categoryId', 'headingId']
+        whitelist: ['token', 'a_currentSiteId', 'categoryId', 'headingId']
     }
     
     const reducers = {
         a_sites: adminSitesReducer,
         a_headingList: adminHeadingListReducer,
         a_currentSiteId: currentIdReducer,
+        admin: authReducer,
+        token: tokenReducer,
 
         sites: sitesReducer,
 
