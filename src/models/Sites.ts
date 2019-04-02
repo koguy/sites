@@ -8,7 +8,8 @@ export class Sites {
     url: string;
     description: string;
     tags: Array<string>;
-    heading: Heading
+    heading: Heading;
+    dateCreated: Date
 
     constructor() {
         this.id = 0;
@@ -18,5 +19,6 @@ export class Sites {
         this.description = "";
         this.tags = [];
         this.heading = new Heading();
+        this.dateCreated = new Date();
     }
 }

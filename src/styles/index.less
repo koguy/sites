@@ -26,14 +26,88 @@ button {
     }
 }
 
-.ant-carousel .slick-slide {
-    height: 400px;
-    line-height: 160px;
-    background-color: cadetblue;
-    overflow: hidden;
-  }
+@mainColor: #1976D2; //#303F9F;
+@secondary: #FFC60C;
+@accentColor: #00BCD4;
+@blue2-opacity: rgba(3, 171, 244, 0.1);
 
-  .img-on-page {
-    height: 400px;
-    background-color: cadetblue;
-  }
+.header {
+    //height: 100px;
+    background-color: @mainColor;
+    //padding: 0px;
+
+    &.logo {
+        float: left;
+        height: 60px;
+    }
+
+    &.menu {
+        float: right;
+        padding-top: 10px;
+    }
+}
+
+.content {
+    background-color: white;
+    margin: 24px 0px 24px 0px;
+
+    &.sider {
+        padding: 5px;
+        border-right: solid 1px @mainColor;
+    }
+
+    &.inside-content {
+        padding-left: 30px;
+    }
+}
+
+.left-menu {
+    border: 0px;
+
+    &.submenu {
+        font-size:18px;
+        font-weight: bold;
+        margin-top:8px;
+    }
+    
+    &.menuitem {
+        font-size:16px;
+        font-weight: bold;
+    }
+}
+
+.heading-icon {
+    height: 30px;
+    width: 30px;
+    margin-right: 5px;
+}
+
+.heading-icon-avatar {
+    height: 40px;
+    width: 40px;
+}
+
+.category-icon {
+    height: 40px;
+    width: 40px;
+}
+
+.search {
+    padding: 10px;
+    width: 200px;
+    float: right;
+}
+
+.card {
+    &.category:hover {
+        background-color: @blue2-opacity;
+    }
+}
+
+.site-url {
+    font-size: 18px; 
+    // font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: bold;
+}
+
+

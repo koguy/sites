@@ -2,39 +2,29 @@ import {combineReducers, applyMiddleware, createStore} from 'redux';
 import {connectRouter, routerMiddleware} from 'connected-react-router';
 import thunk from 'redux-thunk';
 import {createBrowserHistory} from 'history';
-import {ISitesState, reducer as adminSitesReducer, currentIdReducer} from './admin/sites';
-import {sitesReducer} from './sites';
+import {sitesReducer, allSitesReducer} from './sites';
 import {composeWithDevTools} from 'redux-devtools-extension';
 import {persistStore, persistReducer} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import {reducer as categoryListReducer, categoryIdReducer, categoryReducer} from './category';
-import {headingIdReducer, headingReducer} from './heading';
-import {adminHeadingListReducer} from './admin/heading';
+import {reducer as categoryListReducer} from './category';
+import {headingListReducer} from './heading';
 import {Category} from '../models/Category';
 import {Heading} from '../models/Heading';
 import {Sites} from '../models/Sites';
 import storageSession from 'redux-persist/lib/storage/session';
-import {authReducer, IAuthState, tokenReducer} from './admin/authentication';
+import {filterReducer, IFilterState} from './filter';
 
 declare global {
     interface Window { devToolsExtension: never; }
 }
 
 export interface IApplicationState {
-    a_sites: ISitesState,
-    a_headingList: Array<Heading>,
-    a_currentSiteId: number,
-    admin: IAuthState,
-    token: string,
-
     sites: Array<Sites>,
+    allSites: Array<Sites>,
 
     categoryList: Array<Category>,
-    category: Category,
-    categoryId: number,
     
-    heading: Heading,
-    headingId: number
+    filter: IFilterState
 }
 
 //export function configureStore(history: History<any>, initialState: IApplicationState) {
@@ -46,24 +36,16 @@ export function configureStore() {
     const persistConfig = {
         key: 'root',
         storage: storageSession,
-        whitelist: ['token', 'a_currentSiteId', 'categoryId', 'headingId']
+        whitelist: ['headingId', 'filter']
     }
     
     const reducers = {
-        a_sites: adminSitesReducer,
-        a_headingList: adminHeadingListReducer,
-        a_currentSiteId: currentIdReducer,
-        admin: authReducer,
-        token: tokenReducer,
-
         sites: sitesReducer,
+        allSites: allSitesReducer,
 
         categoryList: categoryListReducer,
-        category: categoryReducer,
-        categoryId: categoryIdReducer,
 
-        heading: headingReducer,
-        headingId: headingIdReducer
+        filter: filterReducer
     };
     const middleware = [
         thunk,

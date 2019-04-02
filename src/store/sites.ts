@@ -1,14 +1,15 @@
 import {Sites} from '../models/Sites';
 import {Reducer} from 'redux';
 import {Types} from './types';
+import {fetchAllSites} from '../helpers/allSites';
 
 export namespace IActions{
     export interface IFetchList {
         type: 'FETCH_SITES_LIST',
         sitesList: Array<Sites>
     }
-    export interface IFetchListByHeading {
-        type: 'FETCH_SITES_LIST_BY_HEADING',
+    export interface ISetList {
+        type: 'SET_SITES',
         sitesList: Array<Sites>
     }
 }
@@ -21,51 +22,36 @@ export namespace Actions {
             sitesList
         }
     }
-    export const fetchListByHeading = (sitesList: Array<Sites>): IActions.IFetchListByHeading => {
+    export const setList = (sitesList: Array<Sites>): IActions.ISetList => {
         return {
-            type: Types.FETCH_SITES_LIST_BY_HEADING,
+            type: Types.SET_SITES,
             sitesList
         }
     }
 
     export const actionCreators = {
-
         fetchList:() => (dispatch) => {
-            fetch("http://localhost:5000/api/sites", {
-                method: "GET",
-            })
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data)
-                        dispatch(fetchList(data));
-                })
-                .catch(error =>
-                    console.error("An error occured while FETCH"));
+            fetchAllSites();
         },
-        fetchListByHeading: (headingId: number) => (dispatch) => {
-            fetch("http://localhost:5000/api/sites/heading/" + headingId.toString(), {
-                method: "GET",
-            })
-                .then(response => {
-                    return response.json();
-                })
-                .then(data => {
-                    if (data)
-                        dispatch(fetchListByHeading(data));
-                })
-                .catch(error =>
-                    console.error("An error occured while FETCH"));
+        setList: (sitesList: Array<Sites>) => (dispatch) => {
+            dispatch(setList(sitesList));
         }
     }
 }
 
-type KnowAction = IActions.IFetchList | IActions.IFetchListByHeading;
+type KnowAction = IActions.ISetList; 
 
-export const sitesReducer: Reducer<Array<Sites>> = (state: Array<Sites> = new Array<Sites>() , action: KnowAction) => {
+export const sitesReducer: Reducer<Array<Sites>> = (state: Array<Sites> = new Array<Sites>(), action: KnowAction) => {
     switch (action.type) {
-        case Types.FETCH_SITES_LIST_BY_HEADING:
+        case Types.SET_SITES:
+            return action.sitesList;
+        default:
+            return state;
+    }
+}
+
+export const allSitesReducer: Reducer<Array<Sites>> = (state: Array<Sites> = new Array<Sites>(), action: IActions.IFetchList) => {
+    switch (action.type) {
         case Types.FETCH_SITES_LIST:
             return action.sitesList;
         default:
